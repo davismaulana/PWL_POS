@@ -157,7 +157,10 @@ class UserController extends Controller
         // $user->wasChanged(['nama','username']);
         // dd($user->wasChanged('nama', 'username'));
 
-        $user = UserModel::all();
+        // $user = UserModel::all();
+        // return view('user', ['data' => $user]);
+
+        $user = UserModel::with('level')->get();
         return view('user', ['data' => $user]);
 
     }
