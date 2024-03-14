@@ -10,6 +10,17 @@ class UserController extends Controller
 {
     public function index(){
         // $data = [
+        //     'level_id' => 2,
+        //     'username' => 'manager_tiga',
+        //     'nama' => 'Manager 3',
+        //     'password' => Hash::make('12345')
+        // ];
+        // UserModel::create($data);
+
+        // $user = UserModel::all();
+        
+
+        // $data = [
         //     'username' => 'customer-1',
         //     'nama' => 'Pelanggan',
         //     'password' => Hash::make('12345'),
@@ -29,13 +40,13 @@ class UserController extends Controller
         
 
         // $user = UserModel::find(1);
-       
+        
 
         // $user = UserModel::where('level_id', 1)->first();
-        
+       
 
         // $user = UserModel::firstWhere('level_id', 1);
-        
+       
 
         // $user = UserModel::findOr(1,['username','nama'], function(){
         //     abort(404);
@@ -45,14 +56,17 @@ class UserController extends Controller
         // $user = UserModel::findOr(20, ['username','nama'], function(){
         //     abort(404);
         // });
-
+        
 
         // $user = UserModel::findOrFail(1);
-
+      
 
         // $user = UserModel::where('username', 'manager')->firstOrFail();
+        
 
         // $user = UserModel::where('level_id', 2)->count();
+        // dd($user);
+        
 
         // $user = UserModel::firstOrCreate(
         //     [
@@ -76,6 +90,7 @@ class UserController extends Controller
         //         'nama' => 'Manager',
         //     ]
         // );
+        
 
         // $user = UserModel::firstOrNew(
         //     [
@@ -85,7 +100,7 @@ class UserController extends Controller
         //         'level_id' => 2
         //     ]
         // );
-
+        
         // $user = UserModel::firstOrNew(
         //     [
         //         'username' => 'manager33',
@@ -95,6 +110,8 @@ class UserController extends Controller
         //     ]
         // );
         // $user->save();
+    
+
 
         // return view('user', ['data' => $user]);
 
@@ -123,21 +140,63 @@ class UserController extends Controller
         // $user->isClean();
         // dd($user->isDirty());
 
-        $user = userModel::create([
-            'username' => 'manager11',
-            'nama' => 'Manager11',
-            'password' => Hash::make('12345'),
-            'level_id' => 2,
-        ]);
+        // $user = userModel::create([
+        //     'username' => 'manager11',
+        //     'nama' => 'Manager11',
+        //     'password' => Hash::make('12345'),
+        //     'level_id' => 2,
+        // ]);
 
-        $user->username = 'manager12';
+        // $user->username = 'manager12';
+
+        // $user->save();
+
+        // $user->wasChanged();
+        // $user->wasChanged('username');
+        // $user->wasChanged('nama');
+        // $user->wasChanged(['nama','username']);
+        // dd($user->wasChanged('nama', 'username'));
+
+        $user = UserModel::all();
+        return view('user', ['data' => $user]);
+
+    }
+
+    public function tambah(){
+        return view('user_tambah');
+    }
+
+    public function tambah_simpan(Request $request){
+        UserModel::create([
+            'username' => $request->username,
+            'nama' => $request->nama,
+            'password' => Hash::make($request->password),
+            'level_id' => $request->level_id
+        ]);
+        return redirect('/user');
+    }
+
+    public function ubah($id){
+        $user = UserModel::find($id);
+        return view('user_ubah', ['data' => $user]);
+    }
+
+    public function ubah_simpan($id, Request $request){
+        $user = UserModel::find($id);
+
+        $user->username = $request->username;
+        $user->nama = $request->nama;
+        $user->level_id = $request->level_id;
 
         $user->save();
+        return redirect('/user');
+    }
+    
+    public function hapus($id)
+    {
+        $user = UserModel::find($id);
+        $user->delete();
 
-        $user->wasChanged();
-        $user->wasChanged('username');
-        $user->wasChanged('nama');
-        $user->wasChanged(['nama','username']);
-        dd($user->wasChanged('nama', 'username'));
+        return redirect('/user');
     }
 }
