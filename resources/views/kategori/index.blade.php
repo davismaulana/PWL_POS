@@ -1,5 +1,4 @@
-
-@extends('adminlte::page')
+@extends('layout.app')
 
 {{-- Customize layout sections --}}
 

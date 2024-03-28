@@ -6,26 +6,34 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\DataTables\KategoriDataTable;
 use App\Models\KategoriModel;
+use Illuminate\Http\RedirectResponse;
 
 
 class KategoriController extends Controller
 {
 
-    public function index(KategoriDataTable $dataTable){
+    public function index(KategoriDataTable $dataTable)
+    {
         return $dataTable->render('kategori.index');
     }
-    
+
     public function create()
     {
         return view('kategori.create');
     }
 
-    public function  store(Request $request)
+    public function  store(Request $request): RedirectResponse
     {
-        KategoriModel::create([
-            'kategori_kode' => $request->kodeKategori,
-            'kategori_nama' => $request->namaKategori
+        $validated = $request->validateWithBag('category', [
+            'kategori_kode' => 'bail|required|unique:m_kategori|max:255',
+            'kategori_nama' => 'required'
         ]);
+
+        $validated = $request->validate([
+            'kategori_kode' => 'required',
+            'kategori_nama' => 'required',
+        ]);
+
         return redirect('/kategori');
     }
 

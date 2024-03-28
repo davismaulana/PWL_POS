@@ -4,6 +4,7 @@ use App\Http\Controllers\LevelController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\POSController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,6 +19,14 @@ use App\Http\Controllers\UserController;
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+Route::get('/addlevel', function () {
+    return view('add_level');
+});
+
+Route::get('/adduser', function () {
+    return view('add_user');
 });
 
 Route::get('/level', [LevelController::class,'index']);
@@ -36,3 +45,6 @@ Route::post('/kategori', [KategoriController::class, 'store']);
 Route::get('/kategori/update/{id}', [KategoriController::class, 'update'])->name('kategori.update');
 Route::put('/kategori/update_save/{id}', [KategoriController::class, 'update_save'])->name('kategori.update_save');
 Route::get('/kategori/delete/{id}', [KategoriController::class, 'delete'])->name('kategori.delete');
+Route::resource('m_user', POSController::class);
+
+
