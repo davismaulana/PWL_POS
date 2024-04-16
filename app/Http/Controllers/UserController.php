@@ -5,201 +5,41 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\UserModel;
 use Illuminate\Support\Facades\Hash;
+use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
 {
     public function index(){
-        // $data = [
-        //     'level_id' => 2,
-        //     'username' => 'manager_tiga',
-        //     'nama' => 'Manager 3',
-        //     'password' => Hash::make('12345')
-        // ];
-        // UserModel::create($data);
+        $breadcrumb = (object) [
+            'title' => 'User',
+            'list' => ['Home', 'User']
+        ];
 
-        // $user = UserModel::all();
-        
+        $page = (object)[
+            'title' => 'Daftar user yang terdaftar dalam sistem',
+        ];
 
-        // $data = [
-        //     'username' => 'customer-1',
-        //     'nama' => 'Pelanggan',
-        //     'password' => Hash::make('12345'),
-        //     'level_id' => 4
-        // ];
-        // UserModel::insert($data);
+        $activeMenu = 'user';
 
-        // $data = [
-        //     'level_id' => 2,
-        //     'username' => 'manager_tiga',
-        //     'nama' => 'Manager 3',
-        //     'password' => Hash::make('12345')
-        // ];
-        // UserModel::create($data);
-
-        // $user = UserModel::all();
-        
-
-        // $user = UserModel::find(1);
-        
-
-        // $user = UserModel::where('level_id', 1)->first();
-       
-
-        // $user = UserModel::firstWhere('level_id', 1);
-       
-
-        // $user = UserModel::findOr(1,['username','nama'], function(){
-        //     abort(404);
-        // });
-       
-
-        // $user = UserModel::findOr(20, ['username','nama'], function(){
-        //     abort(404);
-        // });
-        
-
-        // $user = UserModel::findOrFail(1);
-      
-
-        // $user = UserModel::where('username', 'manager')->firstOrFail();
-        
-
-        // $user = UserModel::where('level_id', 2)->count();
-        // dd($user);
-        
-
-        // $user = UserModel::firstOrCreate(
-        //     [
-        //         'username' => 'manager',
-        //         'nama' => 'Manager',
-        //     ]
-        // );
-
-        // $user = UserModel::firstOrCreate(
-        //     [
-        //         'username' => 'manager22',
-        //         'nama' => 'Manager Dua Dua',
-        //         'password' => Hash::make('12345'),
-        //         'level_id' => 2
-        //     ]
-        // );
-
-        // $user = UserModel::firstOrNew(
-        //     [
-        //         'username' => 'manager',
-        //         'nama' => 'Manager',
-        //     ]
-        // );
-        
-
-        // $user = UserModel::firstOrNew(
-        //     [
-        //         'username' => 'manager33',
-        //         'nama' => 'Manager Tiga Tiga',
-        //         'password' => Hash::make('12345'),
-        //         'level_id' => 2
-        //     ]
-        // );
-        
-        // $user = UserModel::firstOrNew(
-        //     [
-        //         'username' => 'manager33',
-        //         'nama' => 'Manager Tiga Tiga',
-        //         'password' => Hash::make('12345'),
-        //         'level_id' => 2
-        //     ]
-        // );
-        // $user->save();
-    
-
-
-        // return view('user', ['data' => $user]);
-
-        // $user = userModel::create([
-        //     'username' => 'manager55',
-        //     'nama' => 'Manager55',
-        //     'password' => Hash::make('12345'),
-        //     'level_id' => 2,
-        // ]);
-
-        // $user->username = 'manager56';
-
-        // $user->isDirty();
-        // $user->isDirty('username');
-        // $user->isDirty('nama');
-        // $user->isDirty(['nama','username']);
-
-        // $user->isClean();
-        // $user->isClean('username');
-        // $user->isClean('nama');
-        // $user->isClean(['nama','username']);
-
-        // $user->save();
-
-        // $user->isDirty();
-        // $user->isClean();
-        // dd($user->isDirty());
-
-        // $user = userModel::create([
-        //     'username' => 'manager11',
-        //     'nama' => 'Manager11',
-        //     'password' => Hash::make('12345'),
-        //     'level_id' => 2,
-        // ]);
-
-        // $user->username = 'manager12';
-
-        // $user->save();
-
-        // $user->wasChanged();
-        // $user->wasChanged('username');
-        // $user->wasChanged('nama');
-        // $user->wasChanged(['nama','username']);
-        // dd($user->wasChanged('nama', 'username'));
-
-        // $user = UserModel::all();
-        // return view('user', ['data' => $user]);
-
-        $user = UserModel::with('level')->get();
-        return view('user', ['data' => $user]);
-
+        return view('user.index', ['breadcrumb' => $breadcrumb, 'page' => $page, 'activeMenu' => $activeMenu]);
     }
-
-    public function tambah(){
-        return view('user_tambah');
-    }
-
-    public function tambah_simpan(Request $request){
-        UserModel::create([
-            'username' => $request->username,
-            'nama' => $request->nama,
-            'password' => Hash::make($request->password),
-            'level_id' => $request->level_id
-        ]);
-        return redirect('/user');
-    }
-
-    public function ubah($id){
-        $user = UserModel::find($id);
-        return view('user_ubah', ['data' => $user]);
-    }
-
-    public function ubah_simpan($id, Request $request){
-        $user = UserModel::find($id);
-
-        $user->username = $request->username;
-        $user->nama = $request->nama;
-        $user->level_id = $request->level_id;
-
-        $user->save();
-        return redirect('/user');
-    }
-    
-    public function hapus($id)
+    public function list(Request $request)
     {
-        $user = UserModel::find($id);
-        $user->delete();
+        $users = UserModel::select('user_id', 'username', 'nama', 'level_id')
+                        ->with('level')
+                        ->get();
 
-        return redirect('/user');
+        return DataTables::of($users)
+                ->addIndexColumn() 
+                ->addColumn('action', function ($user) { 
+                    $btn = '<a href="'.url('/user/' . $user->user_id).'" class="btn btn-info btn-sm">Detail</a> ';
+                    $btn .= '<a href="'.url('/user/' . $user->user_id . '/edit').'" class="btn btn-warning btn-sm">Edit</a> ';
+                    $btn .= '<form class="d-inline-block" method="POST" action="'. url('/user/'.$user->user_id).'">'
+                        . csrf_field() . method_field('DELETE') .
+                        '<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Are you sure to delete this data?\');">Delete</button></form>';
+                    return $btn;
+                })
+                ->rawColumns(['action']) 
+                ->make(true);
     }
 }
