@@ -2,62 +2,159 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use App\DataTables\KategoriDataTable;
 use App\Models\KategoriModel;
-use Illuminate\Http\RedirectResponse;
-
+use Illuminate\Http\Request;
+use Yajra\DataTables\Facades\DataTables;
 
 class KategoriController extends Controller
 {
-
-    public function index(KategoriDataTable $dataTable)
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
     {
-        return $dataTable->render('kategori.index');
+        $breadcrumb = (object) [
+            'title' => 'Daftar Kategori',
+            'list' => ['Home', 'Kategori']
+        ];
+
+        $page = (object) [
+            'title' => 'Daftar kategori yang terdaftar dalam sistem'
+        ];
+
+        $activeMenu = 'kategori';
+
+        return view('category.index', ['breadcrumb' => $breadcrumb, 'page' => $page, 'activeMenu' => $activeMenu]);
     }
 
+    public function list(Request $request) {
+        $kategori = KategoriModel::select('kategori_id', 'kategori_kode', 'kategori_nama');
+
+        return DataTables::of($kategori)
+            ->addIndexColumn()
+            ->addColumn('action', function ($kategori) {
+                $btn = '<a href="'.url('/category/' . $kategori->kategori_id).'" class="btn btn-info btn-sm">Detail</a> ';
+                $btn .= '<a href="'.url('/category/' . $kategori->kategori_id . '/edit').'" class="btn btn-warning btn-sm">Edit</a> ';
+                $btn .= '<form class="d-inline-block" method="POST" action="'.url('/category/'.$kategori->kategori_id).'">'
+                    . csrf_field() . method_field('DELETE') .
+                    '<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Are you sure to delete this data?\');">Delete</button></form>';
+                return $btn;
+            })
+            ->rawColumns(['action'])
+            ->make(true);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
     public function create()
     {
-        return view('kategori.create');
+        $breadcrumb = (object) [
+            'title' => 'Tambah Kategori',
+            'list' => ['Home', 'Kategori', 'Tambah Kategori']
+        ];
+
+        $page = (object) [
+            'title' => 'Tambah kategori baru'
+        ];
+
+        $activeMenu = 'kategori';
+
+        return view('category.create', ['breadcrumb' => $breadcrumb, 'page' => $page, 'activeMenu' => $activeMenu]);
     }
 
-    public function  store(Request $request): RedirectResponse
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
     {
-        $validated = $request->validateWithBag('category', [
-            'kategori_kode' => 'bail|required|unique:m_kategori|max:255',
+        $request->validate([
+            'kategori_kode' => 'required',
             'kategori_nama' => 'required'
         ]);
 
-        $validated = $request->validate([
+        KategoriModel::create($request->all());
+
+        return redirect('/category')->with('status', 'Data kategori berhasil ditambahkan!');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        $kategori = KategoriModel::find($id);
+
+        $breadcrumb = (object) [
+            'title' => 'Detail Kategori',
+            'list' => ['Home', 'Kategori', 'Detail']
+        ];
+
+        $page = (object) [
+            'title' => 'Detail kategori'
+        ];
+
+        $activeMenu = 'kategori';
+
+        return view('category.show', ['breadcrumb' => $breadcrumb, 'page' => $page, 'kategori' => $kategori, 'activeMenu' => $activeMenu]);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(string $id)
+    {
+        $kategori = KategoriModel::find($id);
+
+        $breadcrumb = (object) [
+            'title' => 'Edit Kategori',
+            'list' => ['Home', 'Kategori', 'Edit']
+        ];
+
+        $page = (object) [
+            'title' => 'Edit kategori'
+        ];
+
+        $activeMenu = 'kategori';
+
+        return view('category.edit', ['breadcrumb' => $breadcrumb, 'page' => $page, 'kategori' => $kategori, 'activeMenu' => $activeMenu]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+        $request->validate([
             'kategori_kode' => 'required',
-            'kategori_nama' => 'required',
+            'kategori_nama' => 'required'
         ]);
 
-        return redirect('/kategori');
+        KategoriModel::find($id)->update([
+            'kategori_kode' => $request->kategori_kode,
+            'kategori_nama' => $request->kategori_nama
+        
+        ]);
+
+        return redirect('/category')->with('status', 'Data kategori berhasil diubah!');
     }
 
-    public function update($id)
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
     {
-        $data = KategoriModel::find($id);
-        return view('kategori.update', ['kategori' => $data]);
-    }
+        $check = KategoriModel::find($id);
 
-    public function update_save(Request $request, $id)
-    {
-        $data = KategoriModel::find($id);
-        $data->kategori_kode = $request->kodeKategori;
-        $data->kategori_nama = $request->namaKategori;
-        $data->save();
+        if (!$check) {
+            return redirect('/category')->with('error', 'Data kategori tidak ditemukan!');
+        }
 
-        return redirect('/kategori');
-    }
-
-    public function delete($id)
-    {
-        $data = KategoriModel::find($id);
-        $data->delete();
-
-        return redirect('/kategori');
+        try {
+            $check->delete();
+            return redirect('/category')->with('status', 'Data kategori berhasil dihapus!');
+        } catch (\Illuminate\Database\QueryException $e) {
+            return redirect('/category')->with('error', 'Data kategori gagal dihapus!');
+        }
     }
 }
