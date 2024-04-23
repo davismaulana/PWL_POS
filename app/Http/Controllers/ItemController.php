@@ -78,7 +78,7 @@ class ItemController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'barang_kode' => 'required',
+            'barang_kode' => 'required|unique:m_barang,barang_kode',
             'barang_nama' => 'required',
             'kategori_id' => 'required',
             'harga_beli' => 'required',

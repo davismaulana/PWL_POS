@@ -8,6 +8,7 @@ use App\Http\Controllers\POSController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\StokController;
+use App\Http\Controllers\PenjualanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -105,5 +106,11 @@ Route::group(['prefix' => 'stok'], function() {
     Route::get('/{id}/edit', [StokController::class, 'edit']);
     Route::put('/{id}', [StokController::class, 'update']);
     Route::delete('/{id}', [StokController::class, 'destroy']);
+});
+
+Route::group(['prefix' => 'penjualan'], function() {
+    Route::get('/', [PenjualanController::class, 'index']);
+    Route::post('/list', [PenjualanController::class, 'list']);
+    
 });
 
