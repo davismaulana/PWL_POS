@@ -7,6 +7,10 @@ use App\Models\KategoriModel;
 use App\Models\PenjualanModel;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
+use App\Models\UserModel;
+use App\Models\StokModel;
+use App\Models\PenjualanDetailModel;
+
 
 class PenjualanController extends Controller
 {
@@ -42,13 +46,95 @@ class PenjualanController extends Controller
             ->addIndexColumn()
             ->addColumn('action', function ($penjualan) {
                 $btn = '<a href="'.url('/penjualan/' . $penjualan->penjualan_id).'" class="btn btn-info btn-sm">Detail</a> ';
-                $btn .= '<a href="'.url('/penjualan/' . $penjualan->penjualan_id . '/edit').'" class="btn btn-warning btn-sm">Edit</a> ';
-                $btn .= '<form class="d-inline-block" method="POST" action="'.url('/item/'.$penjualan->penjualan_id).'">'
-                    . csrf_field() . method_field('DELETE') .
-                    '<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Are you sure to delete this data?\');">Delete</button></form>';
                 return $btn;
             })
             ->rawColumns(['action'])
             ->make(true);
+    }
+
+    public function create()
+    {
+        $breadcrumb = (object) [
+            'title' => 'Tambah Penjualan',
+            'list' => ['Home', 'Penjualan', 'Tambah Penjualan']
+        ];
+
+        $page = (object) [
+            'title' => 'Tambah data penjualan'
+        ];
+
+        $activeMenu = 'penjualan';
+
+        $barang = BarangModel::whereHas('stok', function ($query) {
+            $query->where('stok_jumlah', '>', 0);
+        })->get();
+        $user = UserModel::all();
+
+        $salesCode = 'INV/' . date('Ymd') . '/' . rand(1, 10000);
+        $salesDate = date('Y-m-d');
+
+        return view('penjualan.create', ['breadcrumb' => $breadcrumb, 'page' => $page, 'activeMenu' => $activeMenu, 'barang' => $barang, 'user' => $user, 'salesCode' => $salesCode, 'salesDate' => $salesDate]);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer',
+            'penjualan_kode' => 'required|string|unique:t_penjualan,penjualan_kode',
+            'pembeli' => 'required|string',
+            'penjualan_tanggal' => 'required|date',
+            'barang_id' => 'required|array',
+            'harga' => 'required|array',
+            'jumlah' => 'required|array|min:1',
+        ]);
+
+        $trans = PenjualanModel::create([
+            'user_id' => $request->user_id,
+            'penjualan_kode' => $request->penjualan_kode,
+            'pembeli' => $request->pembeli,
+            'penjualan_tanggal' => $request->penjualan_tanggal
+        ]);
+
+        foreach ($request->barang_id as $index => $barang_id) {
+            PenjualanDetailModel::create([
+                'penjualan_id' => $trans->penjualan_id,
+                'barang_id' => $barang_id,
+                'harga' => $request->harga[$index],
+                'jumlah' => $request->jumlah[$index],
+            ]);
+
+            $stok = StokModel::where('barang_id', $barang_id)->first();
+
+            if ($stok) {
+                $stok->stok_jumlah -= $request->jumlah[$index];
+
+                $stok->save();
+            }
+        }
+        return redirect('/penjualan')->with('success', 'Data transaksi berhasil disimpan');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        $penjualan = PenjualanModel::find($id);
+
+        $breadcrumb = (object) [
+            'title' => 'Detail Penjualan',
+            'list' => ['Home', 'Penjualan', 'Detail']
+        ];
+
+        $page = (object) [
+            'title' => 'Detail Penjualan'
+        ];
+
+        $activeMenu = 'penjualan';
+
+        return view('penjualan.show', ['breadcrumb' => $breadcrumb, 'page' => $page, 'activeMenu' => $activeMenu, 'penjualan' => $penjualan]);
     }
 }
