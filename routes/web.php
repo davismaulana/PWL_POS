@@ -123,8 +123,7 @@ Route::get('login', [AuthController::class, 'index'])->name('login');
 Route::get('register', [AuthController::class, 'register'])->name('register');
 Route::post('proses_login', [AuthController::class, 'proses_login'])->name('proses_login');
 Route::get('logout', [AuthController::class, 'logout'])->name('logout');
-Route::post('proses_register', [AuthController::class, 'proses_register'])->name('proses_register');
-
+                
 Route::group(['middleware' => ['auth']], function () {
     Route::group(['middleware' => ['cek_login:1']], function (){
         Route::resource('admin', AdminController::class);
